@@ -1,11 +1,15 @@
 package com.disha;
 
+import com.disha.commands.GetCommand;
+
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
 
 @Command(name = "turl", 
-description = "A CLI tool fpr API Testing",
+description = "A CLI tool for REST API Testing",
+subcommands = {
+    GetCommand.class
+},
 mixinStandardHelpOptions = true, 
 version = "turl 1.0-SNAPSHOT",
 header = "TURL - REST API Testing CLI Tool",
