@@ -1,7 +1,5 @@
 package com.disha.commands;
 
-import java.util.Map;
-
 import com.disha.http.ApiClient;
 import com.disha.http.HttpResponse;
 import com.disha.utils.ConsoleUtil;
