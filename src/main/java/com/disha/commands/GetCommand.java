@@ -2,6 +2,7 @@ package com.disha.commands;
 
 import com.disha.http.ApiClient;
 import com.disha.http.HttpResponse;
+import com.disha.utils.ConsoleUtil;
 import com.disha.utils.JsonUtil;
 
 import picocli.CommandLine.Command;
@@ -50,14 +51,20 @@ public class GetCommand implements Runnable{
         try {            
             HttpResponse response = client.get(endpoint);  
             
-            if (prettyPrint) {
-                System.out.println(JsonUtil.prettyPrint(response.getBody()));
+            ConsoleUtil.printWarning("Status Code: " + response.getStatusCode());
+            ConsoleUtil.printWarning("Response Time: " + response.getResponseTime());
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                if (prettyPrint) {                
+                    ConsoleUtil.printSuccess(JsonUtil.prettyPrint(response.getBody()));
+                } else {
+                    ConsoleUtil.printSuccess(response.getBody()); 
+                }
             } else {
-                System.out.println(response.getBody()); 
+                ConsoleUtil.printError(response.getBody());
             }
 
         } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
+            ConsoleUtil.printError(e.getMessage());
         }
     }
 }

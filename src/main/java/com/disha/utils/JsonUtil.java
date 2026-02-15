@@ -15,4 +15,21 @@ public class JsonUtil {
             return json;
         }
     }
+
+    public static boolean isValidJson(String json) {
+        try {
+            objectMapper.readValue(json, Object.class);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static Object parseJson(String json) {
+        try {
+            return objectMapper.readValue(json, Object.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }
