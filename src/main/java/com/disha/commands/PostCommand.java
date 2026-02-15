@@ -7,6 +7,7 @@ import com.disha.http.HttpResponse;
 import com.disha.utils.ConsoleUtil;
 import com.disha.utils.FileUtil;
 import com.disha.utils.JsonUtil;
+import com.disha.utils.ConfigManager;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -43,9 +44,20 @@ public class PostCommand implements Runnable {
 
     @Parameters(
         index = "0", 
-        description = "The URL to send the POST request to"
+        description = "The endpoint or URL to send the POST request to"
     )
-    private String url;
+    private String endpoint;
+    @Option(
+        names = {"-u", "--url"},
+        description = "Base URL of the api"
+    )
+    private String baseUrl;
+
+    @Option(
+        names = {"-a", "--auth"},
+        description = "Authentication Token (Bearer)"
+    )
+    private String authToken;
 
     @Option(
         names = {"-b", "--body"},
@@ -55,9 +67,10 @@ public class PostCommand implements Runnable {
 
     @Option(
         names = {"-H", "--header"},
-        description = "Custom headers (format: key=value)"
+        description = "Custom headers (format: key:value)",
+        arity = "1..*"
     )
-    private Map<String, String> headers;
+    private String[] headers;
 
     @Option(
         names = {"-p", "--pretty"},
@@ -73,11 +86,10 @@ public class PostCommand implements Runnable {
 
     public void run() {
         
-        ApiClient client = new ApiClient();
+        ApiClient client = createClient();
         
         try {            
-            HttpResponse response = client.post(url, requestBody);
-
+            HttpResponse response = client.post(endpoint, requestBody);
             String fileContent;
             
             ConsoleUtil.printWarning("Status Code: " + response.getStatusCode());
@@ -94,7 +106,11 @@ public class PostCommand implements Runnable {
                     }
                 } else {
                     fileContent = response.getBody();
-                    ConsoleUtil.printError(response.getBody());
+                    if (prettyPrint) {
+                        ConsoleUtil.printError(JsonUtil.prettyPrint(response.getBody()));
+                    } else {
+                        ConsoleUtil.printError(response.getBody());
+                    }
                 }
 
                 System.out.println(saveFile);
@@ -103,9 +119,6 @@ public class PostCommand implements Runnable {
                     ConsoleUtil.printWarning("Saving to file...");
                     FileUtil.saveToFile(saveFile, fileContent);
                     ConsoleUtil.printSuccess("Response saved to " + saveFile);
-                } else {
-                    ConsoleUtil.printWarning("Response not saved to " + saveFile);
-                    ConsoleUtil.printWarning(fileContent);
                 }
 
             } catch (Exception e) {
@@ -115,5 +128,32 @@ public class PostCommand implements Runnable {
         } catch (Exception e) {
             ConsoleUtil.printError(e.getMessage());
         }
+    }
+    private ApiClient createClient() {
+        ConfigManager configManager = new ConfigManager();
+        String url = baseUrl != null ? baseUrl : configManager.getProperty("api.base-url");
+
+        ApiClient apiClient = new ApiClient(url);
+
+        if (authToken != null) {
+            apiClient.addAuthorizationBearer(authToken);
+        } else {
+            String token = configManager.getProperty("api.auth-token");
+            if (token != null) {
+                apiClient.addAuthorizationBearer(token);
+            }
+        }
+        if (headers != null) {
+            for (String header : headers) {
+                String[] parts = header.split(":", 2);
+
+                if (parts.length == 2) {
+                    apiClient.setDefaultHeaders(parts[0], parts[1]);
+                }
+            }
+        }
+        apiClient.setDefaultHeaders("Content-Type", "application/json");
+
+        return apiClient;
     }
 }

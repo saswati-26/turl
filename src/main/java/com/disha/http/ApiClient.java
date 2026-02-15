@@ -18,6 +18,7 @@ public class ApiClient {
     }
     
     public ApiClient(String baseUrl) {
+        this();
         this.baseUrl = baseUrl;
     }
 

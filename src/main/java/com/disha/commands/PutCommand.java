@@ -7,6 +7,7 @@ import com.disha.http.ApiClient;
 import com.disha.http.HttpResponse;
 import com.disha.utils.ConsoleUtil;
 import com.disha.utils.JsonUtil;
+import com.disha.utils.ConfigManager;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -40,7 +41,18 @@ public class PutCommand implements Runnable {
         description = "The URL to send the PUT request to"
     )
     private String url;
+    @Option(
+        names = {"-u", "--url"},
+        description = "Base URL of the api"
+    )
+    private String baseUrl;
 
+    @Option(
+        names = {"-a", "--auth"},
+        description = "Authentication Token (Bearer)"
+    )
+    private String authToken;
+    
     @Option(
         names = { "-b", "--body" },
         description = "Request body (JSON format)",
@@ -56,17 +68,17 @@ public class PutCommand implements Runnable {
 
     @Option(
         names = { "-H", "--header" },
-        description = "Custom headers (format: key=value)"
+        description = "Custom headers (format: key:value)",
+        arity = "1..*"
     )
-    private Map<String, String> headers = new LinkedHashMap<>();
+    private String[] headers;
 
     @Override
     public void run() {
-        ApiClient client = new ApiClient();
+        ApiClient client = createClient();
 
         try {
             HttpResponse response = client.put(url, requestBody);
-
 
             ConsoleUtil.printWarning("Status Code: " + response.getStatusCode());
             ConsoleUtil.printWarning("Response Time: " + response.getResponseTime());
@@ -79,7 +91,11 @@ public class PutCommand implements Runnable {
                         ConsoleUtil.printSuccess(response.getBody()); 
                     }
                 } else {
-                    ConsoleUtil.printError(response.getBody());
+                    if (prettyPrint) {
+                        ConsoleUtil.printError(JsonUtil.prettyPrint(response.getBody()));
+                    } else {
+                        ConsoleUtil.printError(response.getBody());
+                    }
                 }
 
             } catch (Exception e) {
@@ -90,5 +106,31 @@ public class PutCommand implements Runnable {
             ConsoleUtil.printError(e.getMessage());
         }
     }
+    private ApiClient createClient() {
+        ConfigManager configManager = new ConfigManager();
+        String url = baseUrl != null ? baseUrl : configManager.getProperty("api.base-url");
 
+        ApiClient apiClient = new ApiClient(url);
+
+        if (authToken != null) {
+            apiClient.addAuthorizationBearer(authToken);
+        } else {
+            String token = configManager.getProperty("api.auth-token");
+            if (token != null) {
+                apiClient.addAuthorizationBearer(token);
+            }
+        }
+        if (headers != null) {
+            for (String header : headers) {
+                String[] parts = header.split(":", 2);
+
+                if (parts.length == 2) {
+                    apiClient.setDefaultHeaders(parts[0], parts[1]);
+                }
+            }
+        }
+        apiClient.setDefaultHeaders("Content-Type", "application/json");
+
+        return apiClient;
+    }
 }

@@ -96,7 +96,12 @@ public class GetCommand implements Runnable{
                     }
                 } else {
                     fileContent = response.getBody();
-                    ConsoleUtil.printError(response.getBody());
+                    if (prettyPrint) {
+                        ConsoleUtil.printError(JsonUtil.prettyPrint(response.getBody()));
+                    }
+                    else {
+                        ConsoleUtil.printError(response.getBody());
+                    }
                 }
 
                 if (saveFile != null) {
@@ -128,8 +133,6 @@ public class GetCommand implements Runnable{
                 apiClient.addAuthorizationBearer(token);
             }
         }
-
-        System.out.println("Headers: " + headers);
         if (headers != null) {
             for (String header : headers) {
                 String[] parts = header.split(":", 2);
