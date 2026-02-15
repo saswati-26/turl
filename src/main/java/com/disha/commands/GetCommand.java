@@ -2,6 +2,7 @@ package com.disha.commands;
 
 import com.disha.http.ApiClient;
 import com.disha.http.HttpResponse;
+import com.disha.utils.ConfigManager;
 import com.disha.utils.ConsoleUtil;
 import com.disha.utils.FileUtil;
 import com.disha.utils.JsonUtil;
@@ -37,6 +38,25 @@ public class GetCommand implements Runnable{
         description = "The api endpoint or api url to retrieve"
     )
     private String endpoint;
+    
+    @Option(
+        names = {"-u", "--url"},
+        description = "Base URL of the api"
+    )
+    private String baseUrl;
+
+    @Option(
+        names = {"-H", "--header"},
+        description = "Set custom headers",
+        arity = "1..*"
+    )
+    private String[] headers;
+
+    @Option(
+        names = {"-a", "--auth"},
+        description = "Authentication Token (Bearer)"
+    )
+    private String authToken;
 
     @Option(
         names = {
@@ -56,7 +76,8 @@ public class GetCommand implements Runnable{
 
     @Override
     public void run() {
-        ApiClient client = new ApiClient();
+        ApiClient client = createClient();
+
         try {            
             HttpResponse response = client.get(endpoint);
             
@@ -91,5 +112,35 @@ public class GetCommand implements Runnable{
         } catch (Exception e) {
             ConsoleUtil.printError(e.getMessage());
         }
+    }
+
+    private ApiClient createClient() {
+        ConfigManager configManager = new ConfigManager();
+        String url = baseUrl != null ? baseUrl : configManager.getProperty("api.base-url");
+
+        ApiClient apiClient = new ApiClient(url);
+
+        if (authToken != null) {
+            apiClient.addAuthorizationBearer(authToken);
+        } else {
+            String token = configManager.getProperty("api.auth-token");
+            if (token != null) {
+                apiClient.addAuthorizationBearer(token);
+            }
+        }
+
+        System.out.println("Headers: " + headers);
+        if (headers != null) {
+            for (String header : headers) {
+                String[] parts = header.split(":", 2);
+
+                if (parts.length == 2) {
+                    apiClient.setDefaultHeaders(parts[0], parts[1]);
+                }
+            }
+        }
+        apiClient.setDefaultHeaders("Content-Type", "application/json");
+
+        return apiClient;
     }
 }
