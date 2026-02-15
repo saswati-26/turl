@@ -40,6 +40,16 @@ public class ApiClient {
         return execute(request);
     }
 
+    // post request
+    public HttpResponse post(String endpoint, String body) throws Exception {
+        HttpRequest request = new HttpRequest("POST", buildUrl(endpoint));
+        
+        // request.setHeaders(headers);
+        request.setBody(body != null ? body : "");
+
+        return execute(request);
+    }
+
     private String buildUrl(String endpoint) {
         if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
             return endpoint;

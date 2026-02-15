@@ -1,6 +1,7 @@
 package com.disha;
 
 import com.disha.commands.GetCommand;
+import com.disha.commands.PostCommand;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -8,7 +9,8 @@ import picocli.CommandLine.Command;
 @Command(name = "turl", 
 description = "A CLI tool for REST API Testing",
 subcommands = {
-    GetCommand.class
+    GetCommand.class,
+    PostCommand.class
 },
 mixinStandardHelpOptions = true, 
 version = "turl 1.0-SNAPSHOT",
