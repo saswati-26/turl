@@ -41,3 +41,5 @@ buildNumber.properties
 
 # Virtual machine crash logs
 hs_err_pid*
+getResponse.json
+postResponse.json

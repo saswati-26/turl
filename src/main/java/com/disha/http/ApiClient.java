@@ -50,6 +50,22 @@ public class ApiClient {
         return execute(request);
     }
 
+    // put method
+    public HttpResponse put(String endpoint, String body) throws Exception {
+        HttpRequest request = new HttpRequest("PUT", buildUrl(endpoint));
+
+        request.setBody(body != null ? body : "");
+
+        return execute(request);
+    }
+
+    // delete method
+    public HttpResponse delete(String endpoint) throws Exception {
+        HttpRequest request = new HttpRequest("DELETE", buildUrl(endpoint));
+
+        return execute(request);
+    }
+
     private String buildUrl(String endpoint) {
         if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
             return endpoint;

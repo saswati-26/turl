@@ -3,6 +3,7 @@ package com.disha.commands;
 import com.disha.http.ApiClient;
 import com.disha.http.HttpResponse;
 import com.disha.utils.ConsoleUtil;
+import com.disha.utils.FileUtil;
 import com.disha.utils.JsonUtil;
 
 import picocli.CommandLine.Command;
@@ -45,22 +46,46 @@ public class GetCommand implements Runnable{
     )
     private boolean prettyPrint;
 
+    @Option(
+        names = {
+            "-s", "--save"
+        },
+        description = "Save response to a file"
+    )
+    private String saveFile;
+
     @Override
     public void run() {
         ApiClient client = new ApiClient();
         try {            
-            HttpResponse response = client.get(endpoint);  
+            HttpResponse response = client.get(endpoint);
+            
+            String fileContent;
             
             ConsoleUtil.printWarning("Status Code: " + response.getStatusCode());
             ConsoleUtil.printWarning("Response Time: " + response.getResponseTime());
-            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-                if (prettyPrint) {                
-                    ConsoleUtil.printSuccess(JsonUtil.prettyPrint(response.getBody()));
+            try {                
+                if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                    if (prettyPrint) {        
+                        fileContent = JsonUtil.prettyPrint(response.getBody());
+                        ConsoleUtil.printSuccess(JsonUtil.prettyPrint(response.getBody()));
+                    } else {
+                        fileContent = response.getBody();
+                        ConsoleUtil.printSuccess(response.getBody()); 
+                    }
                 } else {
-                    ConsoleUtil.printSuccess(response.getBody()); 
+                    fileContent = response.getBody();
+                    ConsoleUtil.printError(response.getBody());
                 }
-            } else {
-                ConsoleUtil.printError(response.getBody());
+
+                if (saveFile != null) {
+                    ConsoleUtil.printWarning("Saving to file...");
+                    FileUtil.saveToFile(saveFile, fileContent);
+                    ConsoleUtil.printSuccess("Response saved to " + saveFile);
+                }
+
+            } catch (Exception e) {
+                ConsoleUtil.printError(e.getMessage());
             }
 
         } catch (Exception e) {

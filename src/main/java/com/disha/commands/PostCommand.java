@@ -5,6 +5,7 @@ import java.util.Map;
 import com.disha.http.ApiClient;
 import com.disha.http.HttpResponse;
 import com.disha.utils.ConsoleUtil;
+import com.disha.utils.FileUtil;
 import com.disha.utils.JsonUtil;
 
 import picocli.CommandLine.Command;
@@ -76,17 +77,39 @@ public class PostCommand implements Runnable {
         
         try {            
             HttpResponse response = client.post(url, requestBody);
+
+            String fileContent;
             
             ConsoleUtil.printWarning("Status Code: " + response.getStatusCode());
             ConsoleUtil.printWarning("Response Time: " + response.getResponseTime());
-            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-                if (prettyPrint) {                
-                    ConsoleUtil.printSuccess(JsonUtil.prettyPrint(response.getBody()));
+
+            try {                
+                if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                    if (prettyPrint) {        
+                        fileContent = JsonUtil.prettyPrint(response.getBody());
+                        ConsoleUtil.printSuccess(JsonUtil.prettyPrint(response.getBody()));
+                    } else {
+                        fileContent = response.getBody();
+                        ConsoleUtil.printSuccess(response.getBody()); 
+                    }
                 } else {
-                    ConsoleUtil.printSuccess(response.getBody()); 
+                    fileContent = response.getBody();
+                    ConsoleUtil.printError(response.getBody());
                 }
-            } else {
-                ConsoleUtil.printError(response.getBody());
+
+                System.out.println(saveFile);
+
+                if (saveFile != null) {
+                    ConsoleUtil.printWarning("Saving to file...");
+                    FileUtil.saveToFile(saveFile, fileContent);
+                    ConsoleUtil.printSuccess("Response saved to " + saveFile);
+                } else {
+                    ConsoleUtil.printWarning("Response not saved to " + saveFile);
+                    ConsoleUtil.printWarning(fileContent);
+                }
+
+            } catch (Exception e) {
+                ConsoleUtil.printError(e.getMessage());
             }
 
         } catch (Exception e) {

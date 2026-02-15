@@ -1,7 +1,9 @@
 package com.disha;
 
+import com.disha.commands.DeleteCommand;
 import com.disha.commands.GetCommand;
 import com.disha.commands.PostCommand;
+import com.disha.commands.PutCommand;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -10,7 +12,9 @@ import picocli.CommandLine.Command;
 description = "A CLI tool for REST API Testing",
 subcommands = {
     GetCommand.class,
-    PostCommand.class
+    PostCommand.class,
+    PutCommand.class,
+    DeleteCommand.class
 },
 mixinStandardHelpOptions = true, 
 version = "turl 1.0-SNAPSHOT",
