@@ -1,5 +1,6 @@
 package com.disha;
 
+import com.disha.commands.ConfigCommand;
 import com.disha.commands.DeleteCommand;
 import com.disha.commands.GetCommand;
 import com.disha.commands.PostCommand;
@@ -14,7 +15,8 @@ subcommands = {
     GetCommand.class,
     PostCommand.class,
     PutCommand.class,
-    DeleteCommand.class
+    DeleteCommand.class,
+    ConfigCommand.class
 },
 mixinStandardHelpOptions = true, 
 version = "turl 1.0-SNAPSHOT",
